@@ -1,25 +1,25 @@
-# SmartSVG Automation
+# SmartSVG Automation — Déclencheur public sécurisé
 
-Public workflow-only repository for coordinating work on the private `frenndak/SmartSVG-Studio` repository. **No SmartSVG application source code belongs here.**
+Ce dépôt est **public** et sert uniquement à cadencer les cycles SmartSVG. Aucun code, image utilisateur, fichier PNG/SVG confidentiel, clé OpenAI ou modèle IA n'est lu/exécuté ici.
 
-- Cadence: GitHub Actions every 30 minutes (`20,50 * * * *`, UTC), best-effort schedule.
-- Independent ChatGPT audit: once an hour; reads the private repo and its PRs.
-- Gate: source code and frozen roadmap must be uploaded to private repo, then `.automation/READY` added after verification.
-- The workflow will require `SMARTSVG_PRIVATE_REPO_TOKEN` (fine-grained token for private repository, Contents + Pull requests read/write) and `OPENAI_API_KEY` (paid API billing, **not** a ChatGPT Plus or Copilot subscription).
-- Never print private diffs, source, prompts, API responses or secrets into public workflow logs. Never upload artifacts containing private source.
-- Draft PRs only; no automatic merges or direct pushes to the default branch. While ANY private SmartSVG PR remains open, new cycles skip development to enforce WIP=1 and avoid conflicting changes.
-- In the absence of a valid source/bootstrap gate, credentials or API key, or both explicit activation variables, do not start autonomous development.
+## Cycle validé
 
-Security: protect default branch, restrict write access, limit secret availability. AI actions incur API charges even when GitHub-hosted public Actions minutes are free.
+- À **HH:20 UTC**, `.github/workflows/development-cycle.yml` signale `develop` au dépôt privé.
+- À **HH:50 UTC**, il signale `repair` : révision de la PR privée courante uniquement.
+- À **HH:10 (Europe/Paris)**, la tâche ChatGPT fait la contre-expertise indépendante des diff/CI réels.
+- GitHub peut retarder ou omettre une exécution planifiée. Un déclenchement ne garantit pas une modification.
 
-## Operator configuration
+## Préparation et activation
 
-1. Import the actual full V21.15.2 source tree into the private repository and verify its archive manifest, then create `.automation/READY` in the **private** repository. Never create that marker based solely on the presence of a README.
-2. In this **public** repository's Settings → Secrets and variables → Actions, create repository secrets `SMARTSVG_PRIVATE_REPO_TOKEN` (fine-grained GitHub PAT for **only** `frenndak/SmartSVG-Studio`, Contents and Pull requests read/write) and `OPENAI_API_KEY` (OpenAI API billed separately).
-3. In the same Actions page, create **two repository variables**: `SMARTSVG_AUTOMATION_ENABLED=true` and `SMARTSVG_PUBLIC_RUNNER_RISK_ACCEPTED=true` **only if** you knowingly accept that public workflow runs and logs are publicly readable. The full private source is checked out on the public runner; tool or test output might disclose portions despite suppression measures. If source confidentiality is essential, do not enable this workflow: move execution to the private repo (consumes private runner minutes) or a secured self-hosted runner.
-4. Run the workflow manually once from the Actions tab, inspect status, confirm it proposes **private draft PRs**, then watch normal scheduled runs. Scheduled invocations may be delayed or skipped under GitHub load.
-5. Protect the public default branch and restrict who can edit Actions workflows; public workflow logs may expose diagnostics, even when we attempt to suppress them. Prefer private-runner architecture if disclosure of any private code is unacceptable.
+1. Importer l'authentique archive V21.15.2 dans `frenndak/SmartSVG-Studio` via une Release **privée** et le workflow d'import privé. SHA-256 du ZIP : `9369656f0216cebb6dccce0d0155bffa16d8c384da6a984bf848cdd8aa003c54`.
+2. Vérifier les 651 empreintes du manifeste, les tests, les signatures des nœuds et les sorties ; fusionner la PR d'import uniquement après examen.
+3. Dans le dépôt **privé**, définir le secret `OPENAI_API_KEY` (API facturée indépendamment de ChatGPT/Copilot), et ajouter `.automation/READY` seulement après contrôle de provenance.
+4. Dans ce dépôt **public**, définir uniquement `SMARTSVG_DISPATCH_TOKEN` (jeton GitHub finement limité à la capacité de `repository_dispatch` du seul dépôt privé). **Ne pas** mettre l'API OpenAI dans le public.
+5. Mettre `SMARTSVG_AUTOMATION_ENABLED=true` en variable Actions dans **chaque dépôt**, après vérification de la facturation/permissions.
+6. Exécuter une fois manuellement le workflow public et vérifier le travail reçu dans les Actions du dépôt privé. Observer les premiers cycles et désactiver la variable en cas d'anomalie.
 
-**No execution guarantee:** cron schedules are best effort; paid Codex API access is required; unattended actions do not guarantee complete or correct features.
+## Protections
 
-**Preflight hardening:** the development job refuses to start unless the canonical roadmap v3.2 SHA-256 matches `0e503a55fa622d7acea44d8e742205fb6a71119262c309a0b5a2bd48f0ab28a3` and the private maintainer has placed a nonempty `.automation/READY` marker. Passing these checks does not attest code quality, real source provenance, or machine-validated cutting.
+Chaque cycle privé reste soumis aux gates de provenance, à WIP=1, aux changements de chemins interdits, aux tests locaux et à la création d'une PR privée. Aucun merge automatique par Codex et aucune certification machine sans essai physique.
+
+Ce dépôt contient seulement les politiques d'orchestration, tests statiques et exemples **synthétiques**. Contact sécurité : utiliser l'option privée de signalement des vulnérabilités GitHub si disponible.
