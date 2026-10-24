@@ -7,7 +7,7 @@ Public workflow-only repository for coordinating work on the private `frenndak/S
 - Gate: source code and frozen roadmap must be uploaded to private repo, then `.automation/READY` added after verification.
 - The workflow will require `SMARTSVG_PRIVATE_REPO_TOKEN` (fine-grained token for private repository, Contents + Pull requests read/write) and `OPENAI_API_KEY` (paid API billing, **not** a ChatGPT Plus or Copilot subscription).
 - Never print private diffs, source, prompts, API responses or secrets into public workflow logs. Never upload artifacts containing private source.
-- Draft PRs only; no automatic merges or direct pushes to the default branch. While an automated candidate PR remains open, new cycles skip development to avoid duplicate/conflicting work.
+- Draft PRs only; no automatic merges or direct pushes to the default branch. While ANY private SmartSVG PR remains open, new cycles skip development to enforce WIP=1 and avoid conflicting changes.
 - In the absence of a valid source/bootstrap gate, credentials or API key, or both explicit activation variables, do not start autonomous development.
 
 Security: protect default branch, restrict write access, limit secret availability. AI actions incur API charges even when GitHub-hosted public Actions minutes are free.
