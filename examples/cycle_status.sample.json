@@ -1,0 +1,15 @@
+{
+  "project": "SmartSVG Studio",
+  "sample_only": true,
+  "github_schedule_utc": "20,50 * * * *",
+  "private_source_imported": false,
+  "manifest_verified": false,
+  "ready_gate": false,
+  "public_runner_risk_accepted": false,
+  "api_key_configured": false,
+  "latest_candidate_pr": null,
+  "last_validated_suite": "G0 synthetic only",
+  "cricut_import_tested": false,
+  "physical_cut_tested": false,
+  "expected_behavior": "skip_without_paid_api_call"
+}
