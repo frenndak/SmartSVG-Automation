@@ -51,8 +51,23 @@ jobs:
             echo "Source or maintainer readiness gate missing; no AI invoked, no change made."
           fi
 
-      - name: Implement one roadmap micro-lot with Codex
+      - name: Avoid duplicate candidate PRs
         if: steps.preflight.outputs.ready == 'true'
+        id: queue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SMARTSVG_PRIVATE_REPO_TOKEN }}
+        run: |
+          count="$(gh pr list --repo frenndak/SmartSVG-Studio --state open --limit 100 --json headRefName --jq '[.[] | select(.headRefName | startswith("smartsvg/auto-"))] | length')"
+          if [[ "$count" != "0" ]]; then
+            echo "clear=false" >> "$GITHUB_OUTPUT"
+            echo "Existing candidate PR awaits review; do not duplicate work."
+          else
+            echo "clear=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Implement one roadmap micro-lot with Codex
+        if: steps.preflight.outputs.ready == 'true' && steps.queue.outputs.clear == 'true'
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
@@ -79,7 +94,7 @@ jobs:
             Your changes will be separately validated and proposed as a DRAFT PR.
 
       - name: Reject protected changes and validate local code
-        if: steps.preflight.outputs.ready == 'true'
+        if: steps.preflight.outputs.ready == 'true' && steps.queue.outputs.clear == 'true'
         working-directory: smartsvg
         shell: bash
         run: |
@@ -113,7 +128,7 @@ jobs:
           fi
 
       - name: Push candidate to PRIVATE repo and open DRAFT PR
-        if: steps.preflight.outputs.ready == 'true'
+        if: steps.preflight.outputs.ready == 'true' && steps.queue.outputs.clear == 'true'
         working-directory: smartsvg
         shell: bash
         env:
