@@ -23,20 +23,28 @@ def inspect_public_repo(root: Path) -> dict:
         raise PublicRepoRejected("WORKFLOW_MISSING")
     content = workflow.read_text(encoding="utf-8")
     required = [
-        '20,50 * * * *',
+        '20 * * * *',
+        '50 * * * *',
         "SMARTSVG_AUTOMATION_ENABLED",
-        "SMARTSVG_PUBLIC_RUNNER_RISK_ACCEPTED",
-        ".automation/READY",
-        "smartsvg/engine/smartsvg_ai",
-        'Path("engine/smartsvg_ai")',
-        "docs/ROADMAP_MASTER_v3_2.md",
-        "secrets.SMARTSVG_PRIVATE_REPO_TOKEN",
-        "secrets.OPENAI_API_KEY",
-        "--draft",
+        "secrets.SMARTSVG_DISPATCH_TOKEN",
+        "repos/frenndak/SmartSVG-Studio/dispatches",
+        "smartsvg-cycle",
     ]
+    prohibited = [
+        "secrets.OPENAI_API_KEY",
+        "secrets.SMARTSVG_PRIVATE_REPO_TOKEN",
+        "openai/codex-action",
+        "working-directory: smartsvg",
+        "checkout@v4",
+        "gh pr merge",
+        "pull_request_target:",
+    ]
+    leaked = [token for token in prohibited if token in content]
+    if leaked:
+        raise PublicRepoRejected("PRIVATE_EXECUTION_IN_PUBLIC_RUNNER: " + ", ".join(leaked))
     missing = [token for token in required if token not in content]
     if missing:
-        raise PublicRepoRejected("WORKFLOW_GATE_OR_ENGINE_PATH_MISSING: " + ", ".join(missing))
+        raise PublicRepoRejected("WORKFLOW_DISPATCH_GATE_MISSING: " + ", ".join(missing))
     if "pull_request_target:" in content or "gh pr merge" in content:
         raise PublicRepoRejected("DANGEROUS_WORKFLOW_TRIGGER_OR_AUTOMERGE")
     forbidden_extensions = {".zip", ".png", ".jpg", ".jpeg", ".webp", ".exe", ".dll", ".safetensors", ".ckpt"}
