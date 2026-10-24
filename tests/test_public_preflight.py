@@ -17,25 +17,21 @@ class PublicRepoTests(unittest.TestCase):
         self.workflow.parent.mkdir(parents=True)
         self.workflow.write_text(
             "\n".join([
-                "cron: '20,50 * * * *'",
+                "cron: '20 * * * *'",
+                "cron: '50 * * * *'",
                 "SMARTSVG_AUTOMATION_ENABLED",
-                "SMARTSVG_PUBLIC_RUNNER_RISK_ACCEPTED",
-                ".automation/READY",
-                "smartsvg/engine/smartsvg_ai",
-                'Path("engine/smartsvg_ai")',
-                "docs/ROADMAP_MASTER_v3_2.md",
-                "secrets.SMARTSVG_PRIVATE_REPO_TOKEN",
-                "secrets.OPENAI_API_KEY",
-                "--draft",
+                "secrets.SMARTSVG_DISPATCH_TOKEN",
+                "repos/frenndak/SmartSVG-Studio/dispatches",
+                "smartsvg-cycle",
             ])
         )
 
     def test_valid_synthetic_tree(self):
         self.assertEqual(inspect_public_repo(self.root)["status"], "public_preflight_passed")
 
-    def test_missing_risk_gate(self):
-        self.workflow.write_text(self.workflow.read_text().replace("SMARTSVG_PUBLIC_RUNNER_RISK_ACCEPTED", ""))
-        with self.assertRaisesRegex(PublicRepoRejected, "GATE_OR_ENGINE"):
+    def test_missing_dispatch_gate(self):
+        self.workflow.write_text(self.workflow.read_text().replace("SMARTSVG_AUTOMATION_ENABLED", ""))
+        with self.assertRaisesRegex(PublicRepoRejected, "DISPATCH_GATE"):
             inspect_public_repo(self.root)
 
     def test_private_zip_forbidden(self):
@@ -53,6 +49,11 @@ class PublicRepoTests(unittest.TestCase):
     def test_no_private_key_literals(self):
         (self.root / "secret.md").write_text(("-----BEGIN " + "PRIVATE KEY-----"))
         with self.assertRaisesRegex(PublicRepoRejected, "PRIVATE_FILE"):
+            inspect_public_repo(self.root)
+
+    def test_no_codex_in_public(self):
+        self.workflow.write_text(self.workflow.read_text() + "\nuses: openai/codex-action@v1")
+        with self.assertRaisesRegex(PublicRepoRejected, "PRIVATE_EXECUTION"):
             inspect_public_repo(self.root)
 
     def test_no_merge_automation(self):
