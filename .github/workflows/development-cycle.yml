@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   autonomous-development:
-    if: vars.SMARTSVG_AUTOMATION_ENABLED == 'true'
+    if: vars.SMARTSVG_AUTOMATION_ENABLED == 'true' && vars.SMARTSVG_PUBLIC_RUNNER_RISK_ACCEPTED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 27
 
@@ -44,7 +44,7 @@ jobs:
         id: preflight
         shell: bash
         run: |
-          if [[ -f smartsvg/.automation/READY && -d smartsvg/smartsvg_ai && -s smartsvg/docs/ROADMAP_MASTER_v3_2.md && -f smartsvg/AGENTS.md ]]; then
+          if [[ -s smartsvg/.automation/READY && -d smartsvg/smartsvg_ai && -s smartsvg/docs/ROADMAP_MASTER_v3_2.md && -f smartsvg/AGENTS.md ]] && echo "0e503a55fa622d7acea44d8e742205fb6a71119262c309a0b5a2bd48f0ab28a3  smartsvg/docs/ROADMAP_MASTER_v3_2.md" | sha256sum --check --status; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
