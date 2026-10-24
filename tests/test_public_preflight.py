@@ -17,7 +17,7 @@ class PublicRepoTests(unittest.TestCase):
         self.workflow.parent.mkdir(parents=True)
         self.workflow.write_text(
             "\n".join([
-                "cron: '20 * * * *'",
+                "cron: '5 * * * *'",
                 "cron: '50 * * * *'",
                 "SMARTSVG_AUTOMATION_ENABLED",
                 "secrets.SMARTSVG_DISPATCH_TOKEN",

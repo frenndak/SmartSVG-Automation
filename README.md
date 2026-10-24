@@ -4,9 +4,9 @@ Ce dépôt est **public** et sert uniquement à cadencer les cycles SmartSVG. Au
 
 ## Cycle validé
 
-- À **HH:20 UTC**, `.github/workflows/development-cycle.yml` signale `develop` au dépôt privé.
+- À **HH:05 UTC**, `.github/workflows/development-cycle.yml` signale `develop` au dépôt privé.
 - À **HH:50 UTC**, il signale `repair` : révision de la PR privée courante uniquement.
-- À **HH:10 (Europe/Paris)**, la tâche ChatGPT fait la contre-expertise indépendante des diff/CI réels.
+- À **HH:35 (Europe/Paris)**, la tâche ChatGPT fait la contre-expertise indépendante des diff/CI réels.
 - GitHub peut retarder ou omettre une exécution planifiée. Un déclenchement ne garantit pas une modification.
 
 ## Préparation et activation
