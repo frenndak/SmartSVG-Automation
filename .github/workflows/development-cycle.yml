@@ -1,0 +1,141 @@
+name: SmartSVG - Development every 30 minutes
+
+on:
+  schedule:
+    - cron: "20,50 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smartsvg-autonomous-development
+  cancel-in-progress: false
+
+jobs:
+  autonomous-development:
+    if: vars.SMARTSVG_AUTOMATION_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 27
+
+    steps:
+      - name: Verify private credentials exist
+        shell: bash
+        env:
+          PRIVATE_TOKEN: ${{ secrets.SMARTSVG_PRIVATE_REPO_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [[ -z "$PRIVATE_TOKEN" || -z "$OPENAI_API_KEY" ]]; then
+            echo "::error::Missing required repo secrets. The cycle is disabled."
+            exit 1
+          fi
+
+      - name: Checkout private SmartSVG source
+        uses: actions/checkout@v4
+        with:
+          repository: frenndak/SmartSVG-Studio
+          ref: main
+          path: smartsvg
+          token: ${{ secrets.SMARTSVG_PRIVATE_REPO_TOKEN }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Check source and roadmap readiness
+        id: preflight
+        shell: bash
+        run: |
+          if [[ -f smartsvg/.automation/READY && -d smartsvg/smartsvg_ai && -s smartsvg/docs/ROADMAP_MASTER_v3_2.md && -f smartsvg/AGENTS.md ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Source or maintainer readiness gate missing; no AI invoked, no change made."
+          fi
+
+      - name: Implement one roadmap micro-lot with Codex
+        if: steps.preflight.outputs.ready == 'true'
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          working-directory: smartsvg
+          prompt: |
+            You are the development agent for the PRIVATE SmartSVG Studio project.
+            First read AGENTS.md and docs/ROADMAP_MASTER_v3_2.md fully enough to identify the
+            next eligible, dependency-satisfied micro-lot, and inspect current repository
+            state. Respect .automation/READY and the frozen V21.14.1 reference.
+            Implement no more than ONE small, well-scoped roadmap micro-lot and
+            ONE correction, with focused tests. Prefer G0/G1 inventory, integrity and
+            regression improvements until validated; avoid new features before gates.
+            Design for ComfyUI, Cricut Design Space, PNG Print Then Cut, SVG cut and
+            editable SVG as separate output contracts; improve Express UX where relevant.
+            Preserve existing node interfaces, backward compatibility, dimensions and
+            cut geometry. Do not fabricate GPU/Cricut physical test results.
+            Do not read or modify credentials or CI workflows. Do not edit AGENTS.md,
+            docs/ROADMAP_MASTER_v3_2.md, docs/ROADMAP_FREEZE_v3_2.json, .github,
+            .automation, private imagery, or baseline archives.
+            This session has no authority to push, merge, release or mark gates passed.
+            If there is no eligible scope or no reliable test evidence, make no changes.
+            Keep test output and source details out of public logs where possible.
+            Your changes will be separately validated and proposed as a DRAFT PR.
+
+      - name: Reject protected changes and validate local code
+        if: steps.preflight.outputs.ready == 'true'
+        working-directory: smartsvg
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes proposed this cycle."
+            exit 0
+          fi
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              AGENTS.md|.automation/*|.github/*|docs/ROADMAP_MASTER_v3_2.md|docs/ROADMAP_FREEZE_v3_2.json|.gitmodules|*.env|*.pem|*.key|*secret*|*token*)
+                echo "::error::Change to protected path rejected."
+                exit 1 ;;
+            esac
+          done < <(git diff --cached --name-only -z)
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          files = list(Path("smartsvg_ai").rglob("*.py"))
+          for path in files:
+              ast.parse(path.read_text(encoding="utf-8-sig"), filename=str(path))
+          print("Python syntax files checked:", len(files))
+          PY
+          if [[ -d tests ]]; then
+            if ! python -m unittest discover -s tests -p 'test_*.py' > "$RUNNER_TEMP/smartsvg-test-results.log" 2>&1; then
+              echo "::error::Tests failed. Details intentionally suppressed in this PUBLIC repository."
+              exit 1
+            fi
+            echo "Python unittest discovery succeeded."
+          fi
+
+      - name: Push candidate to PRIVATE repo and open DRAFT PR
+        if: steps.preflight.outputs.ready == 'true'
+        working-directory: smartsvg
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SMARTSVG_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          if git diff --cached --quiet; then
+            echo "No PR needed."
+            exit 0
+          fi
+          branch="smartsvg/auto-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git config user.name "smartsvg-automation"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git -c core.hooksPath=/dev/null commit -m "chore: propose verified SmartSVG roadmap micro-lot"
+          gh auth setup-git
+          git -c core.hooksPath=/dev/null push origin "HEAD:refs/heads/$branch" >/dev/null 2>&1
+          gh pr create \
+            --repo frenndak/SmartSVG-Studio \
+            --base main \
+            --head "$branch" \
+            --draft \
+            --title "SmartSVG: automated micro-lot candidate (${GITHUB_RUN_ID})" \
+            --body "Automated candidate from public scheduling workflow. **Private source and review remain in this private repository.** Examine the diff, tests, roadmap gate and hourly independent GPT review before approving. No physical Cricut or RTX 3070 validation is implied." >/dev/null
+          echo "Created a PRIVATE draft PR. No source diff disclosed here."
