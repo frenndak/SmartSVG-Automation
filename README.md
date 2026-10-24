@@ -18,8 +18,10 @@ In the PRIVATE repository, configure `OPENAI_API_KEY` as an Actions secret (sepa
 
 The dispatcher deliberately NEVER uses `OPENAI_API_KEY`, checks out the private source, or executes Codex. **No private source code, customer images, model weights or API credentials** belong in the public tree, public logs, or public artifacts.
 
-## Import prerequisite
+## Baseline source — now imported
 
-The ZIP previously provided by the user has SHA-256 `9369656f0216cebb6dccce0d0155bffa16d8c384da6a984bf848cdd8aa003c54`. The private repo records this checksum. Put the actual ZIP as an asset of a **private release** `smartsvg-v21.15.2-source` before dispatches can work; the dedicated private bootstrap action checks the exact digest, 651 manifest hashes and never activates itself.
+SmartSVG V21.15.2 is **present in the private repository main branch**: original ZIP plus 652 extracted files, 651 internal manifest hashes verified, SHA-256 `9369656f0216cebb6dccce0d0155bffa16d8c384da6a984bf848cdd8aa003c54`. Private G0 CI passes; 876 Python unit tests and 12 JavaScript test scripts passed in a controlled local environment. The private admission marker `.automation/READY` is restricted to drafting development PRs; it is not certification of ComfyUI UI, GPU or Cricut hardware.
+
+**Remaining activation:** valid private OpenAI API key and private GitHub variable, plus a narrowly scoped dispatch token and activation variable in this public repository. GitHub Actions execution requires those to be configured in Settings; merely connecting GitHub to ChatGPT does not set them.
 
 Do not activate the scheduler solely because its public tests are green. Ensure OpenAI API usage and budget are approved. Private code is not validated by public CI.
