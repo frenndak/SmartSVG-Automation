@@ -25,3 +25,13 @@ SmartSVG V21.15.2 is **present in the private repository main branch**: original
 **Remaining activation:** valid private OpenAI API key and private GitHub variable, plus a narrowly scoped dispatch token and activation variable in this public repository. GitHub Actions execution requires those to be configured in Settings; merely connecting GitHub to ChatGPT does not set them.
 
 Do not activate the scheduler solely because its public tests are green. Ensure OpenAI API usage and budget are approved. Private code is not validated by public CI.
+
+## Status and safe first test (24 October 2026)
+
+The authentic source archive V21.15.2 and working `engine/` are already present in the private repository. The private admission G0 CI passed; physical machine tests are not implied.
+
+The public **Run workflow** action defaults to `dry_run=true`: it validates phase handling without dispatching or making an OpenAI API call. An actual manual dispatch requires `dry_run=false`, an enabled public variable, and a valid scoped GitHub dispatch token.
+
+The private workflow similarly defaults to `execute=false` for a no-cost manual integrity preflight. With automation explicitly enabled, only `execute=true` starts a manual paid Codex job. Scheduled private jobs are separately gated by their private `SMARTSVG_AUTOMATION_ENABLED` variable and readiness evidence.
+
+An hourly repair invocation is **not** an hourly guaranteed paid Codex call: it requires an autonomous `smartsvg/auto-*` PR with an explicit review label `bug` or `smartsvg:repair`. The label is claimed and removed before the paid call to avoid unbounded replay. See `docs/ACTIVATION.md` and `docs/ARCHITECTURE.md`.
