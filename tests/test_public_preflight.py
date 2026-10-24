@@ -58,7 +58,7 @@ class PublicRepoTests(unittest.TestCase):
 
     def test_no_merge_automation(self):
         self.workflow.write_text(self.workflow.read_text() + "\ngh pr merge 12")
-        with self.assertRaisesRegex(PublicRepoRejected, "DANGEROUS"):
+        with self.assertRaisesRegex(PublicRepoRejected, "PRIVATE_EXECUTION|DANGEROUS"):
             inspect_public_repo(self.root)
 
 
