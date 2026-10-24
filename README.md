@@ -1,25 +1,25 @@
-# SmartSVG Automation — Déclencheur public sécurisé
+# SmartSVG Automation — public scheduler only
 
-Ce dépôt est **public** et sert uniquement à cadencer les cycles SmartSVG. Aucun code, image utilisateur, fichier PNG/SVG confidentiel, clé OpenAI ou modèle IA n'est lu/exécuté ici.
+This **public** repository contains no SmartSVG engine source and runs no AI code.
+GitHub Actions dispatches private engineering cycles to `frenndak/SmartSVG-Studio`:
+- `20 * * * *` UTC: development candidate cycle.
+- `50 * * * *` UTC: repair cycle for an existing AI-created private draft PR.
+- Separate ChatGPT scheduled independent review: once an hour at minute 10.
 
-## Cycle validé
+GitHub schedule execution is **best effort** and may be delayed or skipped.
 
-- À **HH:05 UTC**, `.github/workflows/development-cycle.yml` signale `develop` au dépôt privé.
-- À **HH:50 UTC**, il signale `repair` : révision de la PR privée courante uniquement.
-- À **HH:35 (Europe/Paris)**, la tâche ChatGPT fait la contre-expertise indépendante des diff/CI réels.
-- GitHub peut retarder ou omettre une exécution planifiée. Un déclenchement ne garantit pas une modification.
+## Required configuration
 
-## Préparation et activation
+In THIS PUBLIC repository (Settings → Secrets and variables → Actions):
+- Repository **secret** `SMARTSVG_DISPATCH_TOKEN`: fine-grained token with **Contents: read/write** permissions ONLY for the private SmartSVG-Studio repo, sufficient for GitHub repository_dispatch. Prefer a GitHub App installation token where feasible.
+- Repository **variable** `SMARTSVG_AUTOMATION_ENABLED=true`: enable only after the private runner is ready and tested.
 
-1. Importer l'authentique archive V21.15.2 dans `frenndak/SmartSVG-Studio` via une Release **privée** et le workflow d'import privé. SHA-256 du ZIP : `9369656f0216cebb6dccce0d0155bffa16d8c384da6a984bf848cdd8aa003c54`.
-2. Vérifier les 651 empreintes du manifeste, les tests, les signatures des nœuds et les sorties ; fusionner la PR d'import uniquement après examen.
-3. Dans le dépôt **privé**, définir le secret `OPENAI_API_KEY` (API facturée indépendamment de ChatGPT/Copilot), et ajouter `.automation/READY` seulement après contrôle de provenance.
-4. Dans ce dépôt **public**, définir uniquement `SMARTSVG_DISPATCH_TOKEN` (jeton GitHub finement limité à la capacité de `repository_dispatch` du seul dépôt privé). **Ne pas** mettre l'API OpenAI dans le public.
-5. Mettre `SMARTSVG_AUTOMATION_ENABLED=true` en variable Actions dans **chaque dépôt**, après vérification de la facturation/permissions.
-6. Exécuter une fois manuellement le workflow public et vérifier le travail reçu dans les Actions du dépôt privé. Observer les premiers cycles et désactiver la variable en cas d'anomalie.
+In the PRIVATE repository, configure `OPENAI_API_KEY` as an Actions secret (separately billed); configure its own `SMARTSVG_AUTOMATION_ENABLED=true` after verified engine import and an independent operator-approved `.automation/READY`. Protected branches, private PRs, tests, Codex output, and logs belong ONLY in the private repository.
 
-## Protections
+The dispatcher deliberately NEVER uses `OPENAI_API_KEY`, checks out the private source, or executes Codex. **No private source code, customer images, model weights or API credentials** belong in the public tree, public logs, or public artifacts.
 
-Chaque cycle privé reste soumis aux gates de provenance, à WIP=1, aux changements de chemins interdits, aux tests locaux et à la création d'une PR privée. Aucun merge automatique par Codex et aucune certification machine sans essai physique.
+## Import prerequisite
 
-Ce dépôt contient seulement les politiques d'orchestration, tests statiques et exemples **synthétiques**. Contact sécurité : utiliser l'option privée de signalement des vulnérabilités GitHub si disponible.
+The ZIP previously provided by the user has SHA-256 `9369656f0216cebb6dccce0d0155bffa16d8c384da6a984bf848cdd8aa003c54`. The private repo records this checksum. Put the actual ZIP as an asset of a **private release** `smartsvg-v21.15.2-source` before dispatches can work; the dedicated private bootstrap action checks the exact digest, 651 manifest hashes and never activates itself.
+
+Do not activate the scheduler solely because its public tests are green. Ensure OpenAI API usage and budget are approved. Private code is not validated by public CI.
