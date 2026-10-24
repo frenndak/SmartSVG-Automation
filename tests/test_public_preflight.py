@@ -51,7 +51,7 @@ class PublicRepoTests(unittest.TestCase):
             inspect_public_repo(self.root)
 
     def test_no_private_key_literals(self):
-        (self.root / "secret.md").write_text("-----BEGIN PRIVATE KEY-----")
+        (self.root / "secret.md").write_text(("-----BEGIN " + "PRIVATE KEY-----"))
         with self.assertRaisesRegex(PublicRepoRejected, "PRIVATE_FILE"):
             inspect_public_repo(self.root)
 
