@@ -29,6 +29,10 @@ def inspect_public_repo(root: Path) -> dict:
         "secrets.SMARTSVG_DISPATCH_TOKEN",
         "repos/frenndak/SmartSVG-Studio/dispatches",
         "smartsvg-cycle",
+        "dry_run:",
+        "default: true",
+        "inputs.dry_run == false",
+        "Validate dispatcher without credentials or API calls",
     ]
     prohibited = [
         "secrets.OPENAI_API_KEY",
