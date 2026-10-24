@@ -2,7 +2,7 @@ name: SmartSVG - Secure half-hour orchestration
 
 on:
   schedule:
-    - cron: "20 * * * *"
+    - cron: "5 * * * *"
     - cron: "50 * * * *"
   workflow_dispatch:
     inputs:
@@ -38,7 +38,7 @@ jobs:
           fi
           if [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
             case "$SCHEDULE" in
-              "20 * * * *") phase="develop" ;;
+              "5 * * * *") phase="develop" ;;
               "50 * * * *") phase="repair" ;;
               *) echo "::error::Unexpected schedule"; exit 1 ;;
             esac
