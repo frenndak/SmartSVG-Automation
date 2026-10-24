@@ -10,6 +10,10 @@ on:
         type: choice
         options: [develop, repair]
         default: develop
+      dry_run:
+        type: boolean
+        description: "Safe manual check only (uncheck explicitly to dispatch)"
+        default: true
 
 permissions:
   contents: read
@@ -19,8 +23,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate-manual-request:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    steps:
+      - name: Validate dispatcher without credentials or API calls
+        shell: bash
+        env:
+          REQUESTED_PHASE: ${{ inputs.phase }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          [[ "$REQUESTED_PHASE" == "develop" || "$REQUESTED_PHASE" == "repair" ]]
+          [[ "$DRY_RUN" == "true" || "$DRY_RUN" == "false" ]]
+          echo "VALID dispatcher phase=$REQUESTED_PHASE dry_run=$DRY_RUN"
+          echo "This validation did NOT dispatch anything or invoke paid AI."
+
   signal-private-engineer:
-    if: vars.SMARTSVG_AUTOMATION_ENABLED == 'true'
+    if: vars.SMARTSVG_AUTOMATION_ENABLED == 'true' && (github.event_name == 'schedule' || inputs.dry_run == false)
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:

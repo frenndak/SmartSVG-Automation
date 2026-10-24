@@ -23,6 +23,10 @@ class PublicRepoTests(unittest.TestCase):
                 "secrets.SMARTSVG_DISPATCH_TOKEN",
                 "repos/frenndak/SmartSVG-Studio/dispatches",
                 "smartsvg-cycle",
+                "dry_run:",
+                "default: true",
+                "inputs.dry_run == false",
+                "Validate dispatcher without credentials or API calls",
             ])
         )
 
@@ -31,6 +35,16 @@ class PublicRepoTests(unittest.TestCase):
 
     def test_missing_dispatch_gate(self):
         self.workflow.write_text(self.workflow.read_text().replace("SMARTSVG_AUTOMATION_ENABLED", ""))
+        with self.assertRaisesRegex(PublicRepoRejected, "DISPATCH_GATE"):
+            inspect_public_repo(self.root)
+
+    def test_no_manual_dispatch_without_explicit_opt_in(self):
+        self.workflow.write_text(self.workflow.read_text().replace("inputs.dry_run == false", ""))
+        with self.assertRaisesRegex(PublicRepoRejected, "DISPATCH_GATE"):
+            inspect_public_repo(self.root)
+
+    def test_manual_dry_run_must_default_true(self):
+        self.workflow.write_text(self.workflow.read_text().replace("default: true", "default: false"))
         with self.assertRaisesRegex(PublicRepoRejected, "DISPATCH_GATE"):
             inspect_public_repo(self.root)
 
