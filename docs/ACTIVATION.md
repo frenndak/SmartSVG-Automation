@@ -23,10 +23,10 @@ Ces secrets, variables et rulesets doivent être renseignés dans **GitHub Setti
 ## Cadence et revue
 
 - **HH:05 UTC** : orchestration publique → développement privé d'un seul micro-lot, si aucune PR autonome déjà active.
-- **HH:35 Europe/Paris** : tâche ChatGPT indépendante → inspection des changements et des CI, publication d'une revue. Les fuseaux UTC et Europe/Paris sont distincts ; cette configuration ne garantit **pas** une revue 30 minutes après le même run en toute saison.
+- **HH:35 Europe/Paris** : tâche ChatGPT indépendante → inspection des changements et des CI, publication d'une revue. Les fuseaux UTC et Europe/Paris sont distincts, mais leur décalage conserve les minutes : la revue suit en théorie le développement d'environ 30 minutes, sous réserve des retards et de la durée réelle du job.
 - **HH:50 UTC** : correction **seulement** si une PR `smartsvg/auto-*` a reçu le label `bug` ou `smartsvg:repair` après une revue pertinente. Le label est retiré **avant** l'appel payant afin de ne pas répéter une correction indéfiniment.
 
-IMPORTANT : dans cette configuration, la revue horaire doit privilégier les PR effectives et ne pas supposer que les trois créneaux forment nécessairement un cycle chronologique parfait pendant les changements d'heure. Les déclenchements GitHub sont best-effort et peuvent arriver en retard.
+IMPORTANT : dans cette configuration, la revue horaire doit privilégier les PR effectives et ne pas supposer que les trois créneaux forment toujours une séquence parfaite : les exécutions GitHub peuvent être retardées. Les déclenchements GitHub sont best-effort et peuvent arriver en retard.
 
 ## Arrêt et diagnostics
 
