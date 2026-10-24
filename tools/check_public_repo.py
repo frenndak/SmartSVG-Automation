@@ -23,7 +23,7 @@ def inspect_public_repo(root: Path) -> dict:
         raise PublicRepoRejected("WORKFLOW_MISSING")
     content = workflow.read_text(encoding="utf-8")
     required = [
-        '20 * * * *',
+        '5 * * * *',
         '50 * * * *',
         "SMARTSVG_AUTOMATION_ENABLED",
         "secrets.SMARTSVG_DISPATCH_TOKEN",
